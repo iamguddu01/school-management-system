@@ -1,11 +1,41 @@
-// "use client";
-import React, { memo } from 'react'
+"use client";
+import React, { memo, useCallback, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MoveLeft } from 'lucide-react'
 import { FcGoogle } from "react-icons/fc";
+import { message } from 'antd';
+import { register } from 'next/dist/next-devtools/userspace/pages/pages-dev-overlay-setup';
 
 const Register = () => {
+
+    const [info, setInfo] = useState({
+        email:"",
+        password:"",
+        confirmPassword:""
+    });
+    const handleOnChange = useCallback((e, key)=>{
+        setInfo((prev)=>({...prev, [key]:e.target.value}))
+    }, [])
+    const handleRegisterUsingEmail= useCallback(async()=>{
+        if(!info?.email || !info?.password || !info?.confirmPassword){
+            return message.error("All fields are required")
+        }
+        if(info?.password === info?.confirmPassword){
+            return message.error("Password and Confirm Password must be same.")
+        }
+        const payload = {
+            email: info?.email,
+            password: info?.password
+        };
+        try {
+            const response = await register(payload)
+
+        } catch (error) {
+            
+        }
+    }, [info])
+
   return (
     <div className='w-screen min-h-screen bg-slate-100 flex justify-center items-center p-4 overflow-y-auto'>
         <div className='w-full max-w-md rounded-2xl overflow-hidden bg-white shadow-md'>
@@ -30,15 +60,15 @@ const Register = () => {
 
                 <div className='flex flex-col'>
                     <label className='text-sm mb-1 text-slate-700'>Email</label>
-                    <input type="email" placeholder='Enter your email' className='w-full rounded-lg outline-none border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 mb-5'/>
+                    <input type="email" value={info.email} onChange={(e)=>handleOnChange(e, "email")} placeholder='Enter your email' className='w-full rounded-lg outline-none border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 mb-5'/>
                 </div>
                 <div className='flex flex-col'>
                     <label className='text-sm mb-1 text-slate-700'>Password</label>
-                    <input type="password" placeholder='Enter your password' className='w-full rounded-lg outline-none border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 mb-5'/>
+                    <input type="password" value={info.password} onChange={(e)=>handleOnChange(e, "password")} placeholder='Enter your password' className='w-full rounded-lg outline-none border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 mb-5'/>
                 </div>
                 <div className='flex flex-col'>
                     <label className='text-sm mb-1 text-slate-700'>Confirm Password</label>
-                    <input type="password" placeholder='Confirm your password' className='w-full rounded-lg outline-none border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 mb-5'/>
+                    <input type="password" value={info.confirmPassword} onChange={(e)=>handleOnChange(e, "confirmPassword")} placeholder='Confirm your password' className='w-full rounded-lg outline-none border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 mb-5'/>
                 </div>
                 <button className='w-full rounded-lg bg-blue-600 px-4 py-2.5 cursor-pointer text-sm text-white font-medium hover:bg-blue-700'>Register</button>
             </div>

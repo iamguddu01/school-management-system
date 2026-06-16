@@ -1,9 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import React, { useCallback, useState } from 'react'
-import {message} from "antd"
+import {message, Spin} from "antd"
 import Link from 'next/link'
 import { MoveLeft, Upload, X } from 'lucide-react'
+import api from '@/service';
+import {cloudinaryConfig} from "@/config" 
 
 const availableClasses = ["Nursery", "LKG", "UKG", "CLASS 1", "CLASS 2", "CLASS 3", "CLASS 4", "CLASS 5", "CLASS 6", "CLASS 7", "CLASS 8", "CLASS 9", "CLASS 10", "CLASS 11", "CLASS 12 ",]
 
@@ -14,7 +16,9 @@ const SchoolInformation = () => {
         location: "",
         classes: [],
         logo: null,
-        logoPreview: null
+        logoPreview: null,
+        logoUrl:null,
+        uploadingLogo: false
     })
 
     const handleSelectClasses = useCallback(
@@ -34,7 +38,7 @@ const SchoolInformation = () => {
         []
     )
 
-    const handleImgUpload = useCallback((event)=>{
+    const handleImgUpload = useCallback(async(event)=>{
         const file = event?.target?.files?.[0];
         if(file){
             const fileSize = file?.size;
@@ -48,6 +52,27 @@ const SchoolInformation = () => {
                 setInfo((prev)=>({...prev, logoPreview: reader.result}))
             };
             reader.readAsDataURL(file)
+
+            const form = new FormData();
+            form.append("file", file);
+            form.append("upload_preset", cloudinaryConfig?.uploadPreset)
+            try {
+                setInfo((prev)=>({
+                    ...prev,
+                    uploadingLogo: true
+                }))
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig?.cloudName}/image/upload`, {
+                    method: "POST",
+                    body: form
+                });
+                const data = await response.json();
+                if(data?.secure_url){
+                    setInfo((prev)=>({...prev, logoUrl: data?.secure_url, uploadingLogo: false}));
+                    message.success("Logo uploaded successfully")
+                }
+            } catch (error) {
+                
+            }
         }
     },
     [])
@@ -140,9 +165,9 @@ const SchoolInformation = () => {
                                     <p className='text-sm text-slate-700 font-medium'>{info?.logo?.name}</p>
                                     <p className='text-xs text-slate-500'>{(info?.logo?.size/(1024*1024)).toFixed(2)} MB</p>
                                 </div>
-                                <button className='cursor-pointer' onClick={removeImageHandler}>
+                                {info?.uploadingLogo?<Spin/>:<button className='cursor-pointer' onClick={removeImageHandler}>
                                     <X />
-                                </button>
+                                </button>}
                             </div>
                         )}
                     </div>
