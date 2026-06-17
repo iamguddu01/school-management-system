@@ -1,8 +1,11 @@
 "use client";
-import { Bell, BellRing, ChevronRight, GraduationCap, Mail, MapPin, Megaphone, Phone, School, UsersRound } from 'lucide-react'
-import React, { memo, useState } from 'react'
+import { BellRing, ChevronRight, GraduationCap, Mail, MapPin, Megaphone, Phone, School, UsersRound } from 'lucide-react'
+import React, { memo, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import EmptyAnnouncement from '@/components/EmptyAnnouncement'
+import { useParams } from 'next/navigation';
+import { fetchSchoolInformation } from '@/service/auth.js';
+import { message } from 'antd';
 
 const ANNOUNCEMENTS = [
     {
@@ -65,11 +68,36 @@ const ANNOUNCEMENTS = [
 
 const SchoolLanding = () => {
 
+    const params = useParams();
+    const slug = params?.id;
     const [info, setInfo] = useState({
         announcements: [...(ANNOUNCEMENTS || [])],
         active: ANNOUNCEMENTS.length ? ANNOUNCEMENTS?.[0] : null,
+        schoolInfo: null,
+        loading: true,
+    });
 
-    })
+    useEffect(()=>{
+        // eslint-disable-next-line react-hooks/immutability
+        fetchSchoolInfo()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    const fetchSchoolInfo = useCallback(async()=>{
+        try {
+            const response = await fetchSchoolInformation(slug)
+            const {data, totalStudents}=response || {}
+
+            setInfo((prev)=>({...prev, schoolInfo: {...data, totalStudents}}))
+        } catch (error) {
+            console.log("Error while fetching school info", error)
+            message.error("Failed to fetch school information. Please try again later.")
+        }finally{
+            setInfo((prev)=>({...prev, loading: false}))
+        }
+    }, [slug])
+
+    
 
   return (
     <div className='min-h-screen min-w-screen flex flex-col bg-slate-100'>
@@ -80,7 +108,7 @@ const SchoolLanding = () => {
                         <GraduationCap className='w-5 h-5 text-white' />
                     </div>
                     <div>
-                        <p className='font-semibold text-slate-800 text-sm'>PW school</p>
+                        <p className='font-semibold text-slate-800 text-sm'>{info?.schoolInfo?.name || ""}</p>
                         <p className='text-slate-400 text-xs'>CBSE affiliation</p>
                     </div>
                 </div>
@@ -98,10 +126,10 @@ const SchoolLanding = () => {
                         PW
                     </div>
                     <div className='flex-1 flex flex-col'>
-                        <h1 className='text-2xl text-white font-bold'>Physics wallah school</h1>
+                        <h1 className='text-2xl text-white font-bold'>{info?.schoolInfo?.name}</h1>
                         <div className='flex items-center gap-2 text-xs text-blue-50 mt-2'>
                             <MapPin className='w-4 h-4 text-white'/>
-                            <span>Noida, Uttar Pradesh</span>
+                            <span>{info?.schoolInfo?.details?.address || ""}</span>
                         </div>
                     </div>
                     <div className='flex flex-col gap-2'>
@@ -109,10 +137,10 @@ const SchoolLanding = () => {
                             Login <ChevronRight className='w-4 h-4'/>
                         </Link>
                         <Link href="" className='flex items-center justify-center text-blue-200 text-xs hover:text-white gap-1'>
-                            <Phone className='w-3 h-3'/> 7007751101
+                            <Phone className='w-3 h-3'/> {info?.schoolInfo?.details?.phone || ""}
                         </Link>
                         <Link href="" className='flex items-center justify-center text-blue-200 text-xs hover:text-white gap-1'>
-                            <Mail className='w-3 h-3'/> govind.byte@gmail.com
+                            <Mail className='w-3 h-3'/> {info?.schoolInfo?.details?.email || ""}
                         </Link>
                     </div>
                 </div>
@@ -120,14 +148,14 @@ const SchoolLanding = () => {
                     <div className='flex items-center gap-3 rounded-xl px-4 py-3 bg-white/10 flex-1 text-white md:max-w-[calc(30%)]'>
                         <UsersRound className='text-white'/>
                         <div className='flex flex-col'>
-                            <p className='text-white text-sm'>2000+</p>
+                            <p className='text-white text-sm'>{info?.schoolInfo?.totalStudents || 0}+</p>
                             <span className='text-blue-300 text-xs'>Students</span>
                         </div>
                     </div>
                     <div className='flex items-center gap-3 rounded-xl px-4 py-3 bg-white/10 flex-1 text-white md:max-w-[calc(30%)]'>
                         <School className='text-white'/>
                         <div className='flex flex-col'>
-                            <p className='text-white text-sm'>Nursery - XII</p>
+                            <p className='text-white text-sm'>{info?.schoolInfo?.details?.available_classes?.[0]} - {info?.schoolInfo?.details?.available_classes?.[info?.schoolInfo?.details?.available_classes?.length-1]}</p>
                             <span className='text-blue-300 text-xs'>Classes</span>
                         </div>
                     </div>
@@ -217,7 +245,7 @@ const SchoolLanding = () => {
                                                 href={`mailto:physicwallah@pw.live`}
                                                 className='text-blue-600 hover:underline'
                                             >
-                                                physicwallah@mail.com
+                                                {info?.schoolInfo?.details?.email || ""}
                                             </a>
                                         </p>
                                     </div>

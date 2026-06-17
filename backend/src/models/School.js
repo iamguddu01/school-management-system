@@ -20,7 +20,7 @@ const schoolSchema = new Schema({
     createdBy: {
         type: Schema.Types.ObjectId,
         required: true,
-        ref: "user"
+        ref: "User"
     },
     status: {
         type: String,

@@ -25,18 +25,21 @@ export const registerController = async(req, res)=>{
     const membership = await Membership.create({
         userId,
         schoolId: school._id,
-        role: "admin"
+        roles: "admin",
     })
 
-    res.staus(200).json({
+    res.status(200).json({
         success: true,
         message: "User registered successfully",
         data,
+        slug,
+        membership,
+        school
 
     })
     } catch (error) {
         console.log("Error in register controller => ", error);
-        res.staus(error?.statusCode || 500).json({
+        res.status(error?.statusCode || 500).json({
             success:false,
             message: "An error occured during registration",
             error: error
@@ -50,7 +53,7 @@ export const loginController = async(req, res)=>{
         const {slug} = req.params;
         const {email, password} = req.body || {};
         if(!email || !password){
-            return res.staus(400).json({
+            return res.status(400).json({
                 success: false,
                 message: "Email and password are required",
                 data
@@ -58,7 +61,7 @@ export const loginController = async(req, res)=>{
         }
         const school = await School.findOne({slug});
         if(!school){
-            return res.staus(404).json({
+            return res.status(404).json({
                 success: false,
                 message: `No school found with ${slug}`,
             })
@@ -74,14 +77,14 @@ export const loginController = async(req, res)=>{
             schoolId: school._id,
         })
         if(!membership){
-            return res.staus(403).json({
+            return res.status(403).json({
                 success: false,
                 message: `User does not have access to school with slug - ${slug}`,
                 data
             })
         }
 
-        res.staus(200).json({
+        res.status(200).json({
             success: true,
             message: "Login successfully",
             data,
@@ -89,7 +92,7 @@ export const loginController = async(req, res)=>{
         })
     } catch (error) {
         console.log("Error in login controller => ", error);
-        res.staus(error?.statusCode || 500).json({
+        res.status(error?.statusCode || 500).json({
             success:false,
             message: "An error occured during login",
             error: error

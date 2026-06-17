@@ -1,16 +1,20 @@
+/* eslint-disable react-hooks/preserve-manual-memoization */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import React, { useCallback, useState } from 'react'
 import {message, Spin} from "antd"
 import Link from 'next/link'
 import { MoveLeft, Upload, X } from 'lucide-react'
-import api from '@/service';
 import {cloudinaryConfig} from "@/config" 
+import { useParams, useRouter } from 'next/navigation';
+import { updateSchoolInformation } from '@/service/auth.js';
 
 const availableClasses = ["Nursery", "LKG", "UKG", "CLASS 1", "CLASS 2", "CLASS 3", "CLASS 4", "CLASS 5", "CLASS 6", "CLASS 7", "CLASS 8", "CLASS 9", "CLASS 10", "CLASS 11", "CLASS 12 ",]
 
 const SchoolInformation = () => {
-
+    const params = useParams();
+    const router = useRouter()
+    const slug = params?.id;
     const [info, setInfo] = useState({
         schoolName: "",
         location: "",
@@ -18,7 +22,11 @@ const SchoolInformation = () => {
         logo: null,
         logoPreview: null,
         logoUrl:null,
-        uploadingLogo: false
+        uploadingLogo: false,
+        email: "",
+        phone: "",
+        website: ""
+
     })
 
     const handleSelectClasses = useCallback(
@@ -35,7 +43,7 @@ const SchoolInformation = () => {
                 return { ...prev, classes: existingClasses };
             });
         },
-        []
+        [info?.classes]
     )
 
     const handleImgUpload = useCallback(async(event)=>{
@@ -82,6 +90,53 @@ const SchoolInformation = () => {
         setInfo((prev)=>({...prev, logoPreview: null, logo: null}))
     },[])
 
+    const handleCompleteSetup = useCallback(async()=>{
+        if(!slug){
+            return message.error("Slug is missing.")
+        }
+        if(info?.uploadingLogo){
+            return message.error("Please wait until logo is uploaded.")
+        }
+        if(!info?.schoolName || !info?.location || !info?.classes || !info?.email || !info?.phone){
+            return message.error("Please fill all required fields")
+        }
+
+        const payload = {
+            payloadForUpdate:{
+                name: info?.schoolName,
+                details: {
+                    email: info?.email,
+                    phone: info?.phone,
+                    address: info?.location,
+                    logo: info?.logoUrl || "",
+                    website: info?.website,
+                    available_classes: info?.classes,
+                }
+            },
+        }
+
+        try {
+            const response = await updateSchoolInformation(slug, payload);
+            const {slug: updatedSlug}=response || {};
+            message.success("School Information Updated Successfully.")
+            router.push(`/${updatedSlug}`)
+        } catch (error) {
+            console.log(error)
+            message.error("Something went wrong.")
+        }
+    }, [
+        slug,
+        info?.classes,
+        info?.email,
+        info?.location,
+        info?.logoUrl,
+        info?.phone,
+        info?.schoolName,
+        info?.website,
+        router,
+        info?.uploadingLogo
+    ])
+
 
   return (
     <div className='w-screen min-h-screen bg-slate-100 flex justify-center items-center p-4 overflow-y-auto'>
@@ -104,6 +159,47 @@ const SchoolInformation = () => {
                             onChange={(e)=>setInfo((prev)=>({...prev, schoolName: e.target.value}))}
                             type="text" 
                             placeholder='Enter your school name' 
+                            className='w-full rounded-lg outline-none border border-slate-300 px-3 py-2 text-sm focus:border-slate-500'
+                        />
+                    </div>
+
+
+                    <div className='flex flex-col mb-5'>
+                        <label className='text-sm mt-1 text-slate-700 font-medium'>
+                            School Email <span className='text-red-500'>*</span>
+                        </label>
+                        <input
+                            value={info.email} 
+                            onChange={(e)=>setInfo((prev)=>({...prev, email: e.target.value}))}
+                            type="email" 
+                            placeholder='Enter your school email' 
+                            className='w-full rounded-lg outline-none border border-slate-300 px-3 py-2 text-sm focus:border-slate-500'
+                        />
+                    </div>
+
+
+                    <div className='flex flex-col mb-5'>
+                        <label className='text-sm mt-1 text-slate-700 font-medium'>
+                            School Phone Number <span className='text-red-500'>*</span>
+                        </label>
+                        <input
+                            value={info.phone} 
+                            onChange={(e)=>setInfo((prev)=>({...prev, phone: e.target.value}))}
+                            type="text" 
+                            placeholder='Enter your school phone number' 
+                            className='w-full rounded-lg outline-none border border-slate-300 px-3 py-2 text-sm focus:border-slate-500'
+                        />
+                    </div>
+
+                    <div className='flex flex-col mb-5'>
+                        <label className='text-sm mt-1 text-slate-700 font-medium'>
+                            School Website
+                        </label>
+                        <input
+                            value={info.website} 
+                            onChange={(e)=>setInfo((prev)=>({...prev, website: e.target.value}))}
+                            type="text" 
+                            placeholder='Enter your school website' 
                             className='w-full rounded-lg outline-none border border-slate-300 px-3 py-2 text-sm focus:border-slate-500'
                         />
                     </div>
@@ -173,7 +269,7 @@ const SchoolInformation = () => {
                     </div>
                 </form>
 
-                <button className='w-full rounded-lg bg-blue-600 px-4 py-2.5 cursor-pointer text-sm text-white font-medium hover:bg-blue-700'>Complete Setup</button>
+                <button onClick={handleCompleteSetup} className='w-full rounded-lg bg-blue-600 px-4 py-2.5 cursor-pointer text-sm text-white font-medium hover:bg-blue-700'>Complete Setup</button>
             </div>
         </div>
     </div>
