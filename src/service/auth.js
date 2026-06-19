@@ -29,3 +29,21 @@ export const updateSchoolInformation = async(slug, payload)=>{
         throw error
     }
 }   
+
+export const fetchSchoolAnnouncements = async(slug)=>{
+    try {
+        const {data} = await api.get(`/announcement/${slug}/fetch-school-announcement`);
+        return data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const login = async(slug, payload)=>{
+    try {
+        const {data} = await api.post(`/auth/${slug}/sign-in`, payload);
+        return data
+    } catch (error) {
+        throw error
+    }
+}
