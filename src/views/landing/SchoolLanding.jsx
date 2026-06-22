@@ -11,10 +11,12 @@ import moment from "moment"
 import Image from 'next/image';
 
 
+
 const SchoolLanding = () => {
 
     const params = useParams();
     const router = useRouter();
+
     const slug = params?.id;
     const [info, setInfo] = useState({
         announcements: [],

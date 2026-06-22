@@ -37,7 +37,7 @@ const Login = () => {
             localStorage.setItem("token", token)
             localStorage.setItem("user", JSON.stringify(user));
             localStorage.setItem("membership", JSON.stringify(membership))
-            router.push(`/${slug}`)
+            router.push(`/${slug}/dashboard/profile`)
             setInfo((prev)=>({...prev, loading:false}))
         } catch (error) {
             console.log("Error => handleSubmit", error)

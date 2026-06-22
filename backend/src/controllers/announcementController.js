@@ -71,3 +71,53 @@ export const createSchoolAnnouncement = async(req, res)=>{
         })
     }
 }
+
+export const updateSchoolAnnouncement = async(req, res)=>{
+    try {
+        const {id} = req.params;
+        const { tag, title, description, status } = req.body || {};
+        const announcement = await Announcement.findByIdAndUpdate(id, { tag, title, description, status }, { new: true });
+        if(!announcement){
+            return res.status(404).json({
+                success: false,
+                message: "Announcement not found."
+            })
+        }
+        res.status(200).json({
+            success: true,
+            message: "Announcement updated successfully.",
+            data: announcement
+        })
+    } catch (error) {
+        console.log("Error in updateSchoolAnnouncement => ", error)
+        res.status(error?.statusCode || 500).json({
+            success: false,
+            message: "An error occur while updating announcement.",
+            error: error,
+        })
+    }
+}
+
+export const deleteSchoolAnnouncement = async(req, res)=>{
+    try {
+        const {id} = req.params;
+        const announcement = await Announcement.findByIdAndDelete(id);
+        if(!announcement){
+            return res.status(404).json({
+                success: false,
+                message: "Announcement not found."
+            })
+        }
+        res.status(200).json({
+            success: true,
+            message: "Announcement deleted successfully."
+        })
+    } catch (error) {
+        console.log("Error in deleteSchoolAnnouncement => ", error)
+        res.status(error?.statusCode || 500).json({
+            success: false,
+            message: "An error occur while deleting announcement.",
+            error: error,
+        })
+    }
+}

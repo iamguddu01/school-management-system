@@ -12,7 +12,8 @@ export const handleBetterAuth = async()=>{
         emailAndPassword: {
             enabled: true,
         },
-        baseURL: "http://localhost:5000",
+        baseURL: "http://localhost:5000/api/auth",
+        trustedOrigins: ["http://localhost:3000"],
         user: {
             additionalFields: {
 
@@ -27,7 +28,14 @@ export const handleBetterAuth = async()=>{
                 },
             },
         },
-        plugins: [jwt(), bearer()],
+        plugins: [
+            jwt({
+                jwks: {
+                    disablePrivateKeyEncryption: true,
+                }
+            }), 
+            bearer()
+        ],
     })
 
     return auth;
